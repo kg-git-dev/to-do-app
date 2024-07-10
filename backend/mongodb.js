@@ -9,7 +9,11 @@ const connectDB = async () => {
   try {
     await client.connect();
     console.log('Connected to MongoDB');
-    db = client.db(); 
+    db = client.db();
+
+    // Create unique index on username field
+    await db.collection('users').createIndex({ username: 1 }, { unique: true });
+
   } catch (err) {
     console.error('Failed to connect to MongoDB', err);
   }
