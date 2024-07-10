@@ -8,11 +8,10 @@ const createUser = async (username, password) => {
 
   try {
     await db.collection('users').insertOne({ username, password: hashedPassword });
-    return 
+    return
 
   } catch (error) {
-    console.log('error', error)
-    // Uusername already exists
+    // Username already exists
     if (error.code === 11000 || error.code === 11001) {
       throw new Error('Username already exists');
     }
@@ -27,9 +26,14 @@ const findUserByUsername = async (username) => {
 };
 
 const findUserById = async (userId) => {
-  const db = getDB();
-  const user = await db.collection('users').findOne({ _id: ObjectId.createFromHexString(userId) });
-  return user;
+  try {
+    const db = getDB();
+    const user = await db.collection('users').findOne({ _id: ObjectId.createFromHexString(userId) });
+    return user;
+  } catch (err) {
+    console.log(err)
+  }
+
 };
 
 export { createUser, findUserByUsername, findUserById };

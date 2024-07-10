@@ -3,12 +3,14 @@ import bodyParser from 'body-parser';
 import { connectDB } from './mongodb.js';
 
 import authRoutes from './routes/authRoutes.js';
+import taskRoutes from './routes/taskRoutes.js';
 
 const app = express();
 
 app.use(bodyParser.json());
 
 app.use('/auth', authRoutes);
+app.use('/tasks', taskRoutes);
 
 const PORT = process.env.PORT || 3000;
 
