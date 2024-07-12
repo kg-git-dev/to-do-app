@@ -1,4 +1,3 @@
-// src/components/TaskList.js
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchTasks, addTask, deleteTask } from '../features/tasks/tasksSlice';
@@ -34,13 +33,13 @@ const TaskList = () => {
         value={search}
         onChange={(e) => setSearch(e.target.value)}
       />
-      <ul>
+
         {
           tasks.map((task, index) => (
             <TaskItem key={index} task={task} onDelete={handleDeleteTask} />
           ))
         }
-      </ul>
+  
       <TaskForm onAddTask={handleAddTask} />
       <div>
         <button disabled={page === 1} onClick={() => setPage(page - 1)}>Previous</button>

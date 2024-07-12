@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { Form, Button, Grid, Header, Input } from 'semantic-ui-react';
 
 const LoginForm = () => {
   const [username, setUsername] = useState('');
@@ -17,11 +18,8 @@ const LoginForm = () => {
   };
 
   const handleLogin = async () => {
-    console.log('before response')
-
     try {
       const response = await axios.post('http://localhost:3000/auth/login', { username, password });
-      console.log('after response', response)
       localStorage.setItem('token', response.data.token);
       navigate('/tasks');
     } catch (error) {
@@ -30,21 +28,42 @@ const LoginForm = () => {
   };
 
   return (
-    <div>
-      <h2>Login / Register</h2>
-      <form>
-        <div>
-          <label>Username:</label>
-          <input type="text" value={username} onChange={(e) => setUsername(e.target.value)} />
-        </div>
-        <div>
-          <label>Password:</label>
-          <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
-        </div>
-        <button type="button" onClick={handleRegister}>Create</button>
-        <button type="button" onClick={handleLogin}>Login</button>
-      </form>
-    </div>
+      <Grid centered columns={2}>
+        <Grid.Row >
+          <Grid.Column style={{
+            marginTop: '40px', marginBottom: '10px'
+          }}>
+            <Header as='h2' textAlign='center'>Register or Log in</Header>
+          </Grid.Column>
+        </Grid.Row>
+        <Grid.Row>
+          <Grid.Column>
+            <Form>
+              <Form.Field>
+                <Input
+                  type="text"
+                  placeholder="Username"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                />
+              </Form.Field>
+              <Form.Field>
+                <Input
+                  type="password"
+                  placeholder="Password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+              </Form.Field>
+              <Button.Group>
+                <Button onClick={handleRegister} primary>Register</Button>
+                <Button.Or />
+                <Button positive onClick={handleLogin}>Login</Button>
+              </Button.Group>
+            </Form>
+          </Grid.Column>
+        </Grid.Row>
+      </Grid>
   );
 };
 
