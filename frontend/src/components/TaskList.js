@@ -1,56 +1,28 @@
 // src/components/TaskList.js
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchTasks, addTask, deleteTask } from '../features/tasks/tasksSlice';
 import TaskItem from './TaskItem';
 import TaskForm from './TaskForm';
 
 const TaskList = () => {
-  const [tasks, setTasks] = useState([]);
+  const dispatch = useDispatch();
+  const tasks = useSelector(state => state.tasks.tasks.items);
+  const totalPages = useSelector(state => state.tasks.tasks.totalPages);
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
-  const [pageSize] = useState(5);
-  const [totalPages, setTotalPages] = useState(1);
-  const [loading, setLoading] = useState(true);
+  const [pageSize] = useState(50);
 
   useEffect(() => {
-    const fetchTasks = async () => {
-      setLoading(true);
-      try {
-        const token = localStorage.getItem('token');
-        const response = await axios.get(`http://localhost:3000/tasks?search=${search}&page=${page}&limit=${pageSize}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        console.log('Response:', response.data); // Debugging response
-        if (response.data) {
-          setTasks(response.data);
-          setTotalPages(5);
-          console.log('Tasks set:', response.data); // Debugging tasks setting
-        } else {
-          setTasks([]);
-          setTotalPages(1);
-        }
-      } catch (error) {
-        console.error('Error fetching tasks:', error); // Improved error logging
-        alert('Error fetching tasks.');
-      }
-      setLoading(false);
-    };
-
-    fetchTasks();
-  }, [search, page, pageSize]);
+    dispatch(fetchTasks(search, page, pageSize));
+  }, [search, page, pageSize, dispatch]);
 
   const handleAddTask = async (task) => {
-    try {
-      const token = localStorage.getItem('token');
-      const response = await axios.post('http://localhost:3000/tasks', task, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setTasks([...tasks, response.data]);
-      console.log('Task added:', response.data); // Debugging added task
-    } catch (error) {
-      console.error('Error adding task:', error); // Improved error logging
-      alert('Error adding task');
-    }
+    dispatch(addTask(task));
+  };
+
+  const handleDeleteTask = async (taskId) => {
+    dispatch(deleteTask(taskId));
   };
 
   return (
@@ -62,19 +34,13 @@ const TaskList = () => {
         value={search}
         onChange={(e) => setSearch(e.target.value)}
       />
-      {loading ? (
-        <p>Loading tasks...</p>
-      ) : (
-        <ul>
-          {tasks.length === 0 ? (
-            <p>No tasks found</p>
-          ) : (
-            tasks.map((task) => (
-              <TaskItem key={task._id} task={task} />
-            ))
-          )}
-        </ul>
-      )}
+      <ul>
+        {
+          tasks.map((task, index) => (
+            <TaskItem key={index} task={task} onDelete={handleDeleteTask} />
+          ))
+        }
+      </ul>
       <TaskForm onAddTask={handleAddTask} />
       <div>
         <button disabled={page === 1} onClick={() => setPage(page - 1)}>Previous</button>
