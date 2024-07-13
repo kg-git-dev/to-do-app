@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, createRef } from 'react';
+import { Grid, Input, Modal, Button } from 'semantic-ui-react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchTasks, addTask, deleteTask, setCurrentPage, selectTasks, selectTotalPages, selectCurrentPage, getCurrentState } from '../features/tasks/tasksSlice';
 import TaskItem from './TaskItem';
@@ -11,17 +12,19 @@ const TaskList = () => {
   const currentPage = useSelector(selectCurrentPage);
   const status = useSelector(getCurrentState);
   const [search, setSearch] = useState('');
-  const [pageSize] = useState(10);
+  const [pageSize] = useState(3);
+
+  const [modalOpen, setModalOpen] = useState(false);
 
   useEffect(() => {
     dispatch(fetchTasks(search, currentPage, pageSize));
-  }, [search, currentPage, pageSize, dispatch]);
+  }, [search, currentPage, pageSize]);
 
   const handleAddTask = async (task) => {
+    setModalOpen(false);
     await dispatch(addTask(task));
-    dispatch(fetchTasks(search, currentPage, pageSize)); // Refresh current page tasks
+    await dispatch(fetchTasks(search, currentPage, pageSize)); 
   };
-
 
   const renderPageButtons = () => {
     const buttons = [];
@@ -35,27 +38,50 @@ const TaskList = () => {
     return buttons;
   };
 
+  const activateAddTask = () => {
+    setModalOpen(true);
+  }
+
   return (
-    <div>
-      {status === 'loading' && <p>Loading...</p>}
+    <>
+      <Grid centered>
+        {status === 'loading' && <p>Loading...</p>}
+        <Grid.Row style={{ marginTop: '20px' }}>
+          <h2>Task List</h2>
+        </Grid.Row>
+        <Grid.Row>
+          <Input
+            type="text"
+            placeholder="Search tasks"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+          <button onClick={activateAddTask} style={{ marginLeft: '30px' }}>ADD TASK</button>
 
-      <h2>Task List</h2>
-      <input
-        type="text"
-        placeholder="Search tasks"
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-      />
+        </Grid.Row>
+        {tasks.map((task, index) => (
+          <Grid.Row key={index}>
+            <TaskItem task={task} search={search} currentPage={currentPage} pageSize={pageSize} />
+          </Grid.Row>
+        ))}
 
-      {tasks.map((task, index) => (
-        <TaskItem key={index} task={task} search={search} currentPage={currentPage} pageSize={pageSize}/>
-      ))}
-
-      <TaskForm onAddTask={handleAddTask} />
-      <div>
-        {renderPageButtons()}
-      </div>
-    </div>
+        <Grid.Row>
+          {renderPageButtons()}
+        </Grid.Row>
+      </Grid>
+      <Modal
+        size={"mini"}
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+      >
+        <Modal.Header>Add Task</Modal.Header>
+        <Modal.Content>
+          <TaskForm onAddTask={handleAddTask} />
+        </Modal.Content>
+        <Modal.Actions>
+        </Modal.Actions>
+      </Modal>
+    </>
   );
 };
 

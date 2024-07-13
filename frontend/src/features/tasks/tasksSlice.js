@@ -3,8 +3,10 @@ import axios from 'axios';
 
 export const fetchTasks = (search, page, limit) => async (dispatch, getState) => {
   const state = getState();
+  console.log('fetch tasks fired')
 
   if (state.tasks.tasks.items[page]?.length > 0) return; // Do not fetch if tasks are already in the store
+  console.log('fetch tasks request made')
 
   try {
     dispatch(setLoading());
@@ -31,6 +33,18 @@ export const addTask = (task) => async (dispatch) => {
     dispatch(clearAllPages());
   } catch (error) {
     console.error('Error adding task', error);
+  }
+};
+
+export const updateTask = (id, { status, title, description }) => async (dispatch) => {
+  try {
+    const token = localStorage.getItem('token');
+    await axios.put(`http://localhost:3000/tasks/${id}`, { status, title, description }, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    await dispatch(clearAllPages());
+  } catch (error) {
+    console.error('Error updating task', error);
   }
 };
 

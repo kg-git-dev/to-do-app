@@ -51,9 +51,13 @@ const findTasks = async (userId, { page = 1, limit = 10, search = '', sort = 'la
   return { tasks, totalTasks, totalPages };
 };
 
-const updateTask = async (id, { status }) => {
+const updateTask = async (id, { status, title, description }) => {
   const db = getDB();
-  const update = { status };
+  const update = {};
+
+  if (status !== undefined) update.status = status;
+  if (title !== undefined) update.title = title;
+  if (description !== undefined) update.description = description;
 
   const result = await db.collection('tasks').findOneAndUpdate(
     { _id: ObjectId.createFromHexString(id) },
@@ -61,10 +65,9 @@ const updateTask = async (id, { status }) => {
     { returnOriginal: false }
   );
 
-  if (!result.value) {
-    throw new Error(`Task with id ${id} not found.`);
-  }
+  return; // Return the updated task
 };
+
 
 const deleteTask = async (id) => {
   const db = getDB();
