@@ -3,12 +3,12 @@ import React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import axios from 'axios';
 import { Card } from 'semantic-ui-react'
-import { deleteTask } from '../features/tasks/tasksSlice';
+import { fetchTasks, deleteTask } from '../features/tasks/tasksSlice';
 
-const TaskItem = ({ task }) => {
+const TaskItem = ({ task, search, currentPage, pageSize }) => {
     const dispatch = useDispatch();
 
-    const handleDelete = async () => {
+    const handleDeleteTask = async () => {
         try {
             dispatch(deleteTask(task._id))
             alert('Task deleted successfully');
@@ -16,7 +16,9 @@ const TaskItem = ({ task }) => {
         } catch (error) {
             alert('Error deleting task');
         }
-    };
+        
+        await dispatch(fetchTasks(search, currentPage, pageSize)); 
+      };
 
     const handleComplete = async () => {
         try {
@@ -42,7 +44,7 @@ const TaskItem = ({ task }) => {
             </Card.Content>
             <Card.Content>
                 <button onClick={handleComplete}>Complete</button>
-                <button onClick={handleDelete}>Delete</button>
+                <button onClick={handleDeleteTask}>Delete</button>
                 <button>Edit</button>
             </Card.Content>
         </Card>

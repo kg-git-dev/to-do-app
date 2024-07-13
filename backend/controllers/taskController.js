@@ -1,7 +1,7 @@
 import { createTask, findTasks, updateTask, deleteTask } from '../models/Task.js';
 
 const getTasks = async (req, res) => {
-  const { page = 1, limit = 10, search = '', sort = 'createdAt', isSearchOn = false } = req.query;
+  const { page = 1, limit = 10, search = '', sort = 'latest', isSearchOn = false } = req.query;
   try {
     const { tasks, totalTasks, totalPages } = await findTasks(req.user._id, { page, limit, search, sort, isSearchOn });
     res.json({ tasks, totalTasks, totalPages });

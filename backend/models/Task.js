@@ -3,7 +3,7 @@ import { ObjectId } from 'mongodb';
 
 const createTask = async (title, description, status, userId) => {
   const db = getDB();
-  const newTaskId = await db.collection('tasks').insertOne({ title, description, status, user: userId });
+  const newTaskId = await db.collection('tasks').insertOne({ title, description, status, user: userId, createdAt: new Date() });
   return newTaskId.insertedId;
 };
 
@@ -13,47 +13,63 @@ const getTotalTasks = async (userId) => {
   return totalTasks;
 };
 
-const findTasks = async (userId, { page = 1, limit = 10, search = '', sort = 'createdAt', isSearchOn = false }) => {
+const findTasks = async (userId, { page = 1, limit = 10, search = '', sort = 'latest', sortOrder = 1 }) => {
   const db = getDB();
   const query = { user: userId };
+  let tasks;
+  let totalTasks;
 
-  if (search) {
-    query.title = { $regex: search, $options: 'i' };
+  let sortQuery = {};
+  if (sort === 'oldest') {
+    sortQuery = { createdAt: 1 };
+  } else {
+    sortQuery = { createdAt: -1 };
   }
 
-  let tasks;
-  if (isSearchOn) {
+  if (search) {
+    query.$or = [
+      { title: { $regex: search, $options: 'i' } },
+      { description: { $regex: search, $options: 'i' } }
+    ];
     tasks = await db.collection('tasks')
       .find(query)
-      .sort({ [sort]: 1 })
+      .sort(sortQuery)
       .toArray();
+    totalTasks = tasks.length;
   } else {
     tasks = await db.collection('tasks')
       .find(query)
-      .sort({ [sort]: 1 })
+      .sort(sortQuery)
       .skip((page - 1) * limit)
       .limit(Number(limit))
       .toArray();
+    totalTasks = await getTotalTasks(userId);
   }
 
-  const totalTasks = await getTotalTasks(userId);
   const totalPages = Math.ceil(totalTasks / limit);
 
   return { tasks, totalTasks, totalPages };
 };
 
-// Function to update a task
-const updateTask = async (id, update) => {
+const updateTask = async (id, { status }) => {
   const db = getDB();
-  await db.collection('tasks').findOneAndUpdate({ _id: ObjectId.createFromHexString(id) }, { $set: update }, { returnOriginal: false });
-  return;
+  const update = { status };
+
+  const result = await db.collection('tasks').findOneAndUpdate(
+    { _id: ObjectId.createFromHexString(id) },
+    { $set: update },
+    { returnOriginal: false }
+  );
+
+  if (!result.value) {
+    throw new Error(`Task with id ${id} not found.`);
+  }
 };
 
-// Function to delete a task
 const deleteTask = async (id) => {
   const db = getDB();
-  const result = await db.collection('tasks').findOneAndDelete({ _id: ObjectId.createFromHexString(id) });
-  return result.value;
+  await db.collection('tasks').findOneAndDelete({ _id: ObjectId.createFromHexString(id) });
+  return ;
 };
 
-export { createTask, findTasks, updateTask, deleteTask, getTotalTasks };
+export { createTask, findTasks, updateTask, deleteTask };
