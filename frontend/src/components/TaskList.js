@@ -6,7 +6,7 @@ import TaskForm from './TaskForm';
 
 const TaskList = () => {
   const dispatch = useDispatch();
-  const tasks = useSelector(state => state.tasks.tasks.items);
+  const tasks = useSelector(state => state.tasks.tasks.items.tasks || new Array());
   const totalPages = useSelector(state => state.tasks.tasks.totalPages);
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
@@ -33,7 +33,7 @@ const TaskList = () => {
         value={search}
         onChange={(e) => setSearch(e.target.value)}
       />
-
+      
         {
           tasks.map((task, index) => (
             <TaskItem key={index} task={task} onDelete={handleDeleteTask} />

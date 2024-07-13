@@ -21,7 +21,7 @@ const LoginForm = () => {
     try {
       const response = await axios.post('http://localhost:3000/auth/login', { username, password });
       localStorage.setItem('token', response.data.token);
-      navigate('/tasks');
+      navigate('/tasks-list');
     } catch (error) {
       alert('Error logging in.');
     }

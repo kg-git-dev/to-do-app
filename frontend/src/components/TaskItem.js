@@ -1,17 +1,18 @@
 // src/components/TaskItem.js
 import React from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import axios from 'axios';
 import { Card } from 'semantic-ui-react'
+import { deleteTask } from '../features/tasks/tasksSlice';
 
 const TaskItem = ({ task }) => {
+    const dispatch = useDispatch();
+
     const handleDelete = async () => {
         try {
-            const token = localStorage.getItem('token');
-            await axios.delete(`http://localhost:3000/tasks/${task._id}`, {
-                headers: { Authorization: `Bearer ${token}` },
-            });
+            dispatch(deleteTask(task._id))
             alert('Task deleted successfully');
-            // Refresh the task list or remove the task from the state
+
         } catch (error) {
             alert('Error deleting task');
         }

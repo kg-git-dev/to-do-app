@@ -20,7 +20,7 @@ export const addTask = (task) => async (dispatch) => {
     const response = await axios.post('http://localhost:3000/tasks', task, {
       headers: { Authorization: `Bearer ${token}` },
     });
-    dispatch(addNewTask(response.data));
+    dispatch(addNewTask({task, taskId: response.data.createdTaskId}));
   } catch (error) {
     console.error('Error adding task', error);
   }
@@ -54,7 +54,11 @@ const tasksSlice = createSlice({
       state.totalPages = action.payload;
     },
     addNewTask: (state, action) => {
-      state.items.push(action.payload);
+      const newTask = {
+        ...action.payload.task,
+        _id: action.payload.taskId
+      };
+      state.items.tasks.push(newTask);
     },
     removeTask: (state, action) => {
       state.items = state.items.filter((task) => task._id !== action.payload);
