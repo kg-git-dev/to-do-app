@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import { Grid, Input, Modal } from 'semantic-ui-react';
+import { useNavigate } from 'react-router-dom';
+import { Button, Grid, Input, Modal } from 'semantic-ui-react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchTasks, addTask, setCurrentPage, selectTasks, selectTotalPages, selectCurrentPage, getCurrentState, selectSearchResults } from '../features/tasks/tasksSlice';
+import { fetchTasks, addTask, setCurrentPage, selectTasks, selectTotalPages, selectCurrentPage, getCurrentState, selectSearchResults, clearAllPages } from '../features/tasks/tasksSlice';
 import TaskItem from './TaskItem';
 import TaskForm from './TaskForm';
 
 const TaskList = () => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const tasks = useSelector(selectTasks);
   const searchResults = useSelector(selectSearchResults);
   const totalPages = useSelector(selectTotalPages);
@@ -90,6 +92,15 @@ const TaskList = () => {
       </Grid.Row>
     ));
   };
+
+
+  const handleLogOut = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('expiresAt');
+    dispatch(clearAllPages())
+    navigate('/');
+  }
+
   return (
     <>
       <Grid centered>
@@ -114,6 +125,10 @@ const TaskList = () => {
           {search.length > 0? renderSearchPageButtons() : renderPageButtons()}
         </Grid.Row>
       </Grid>
+      <Button onClick={handleLogOut}>
+        Log out
+      </Button>
+
       <Modal
         size={"mini"}
         open={modalOpen}
