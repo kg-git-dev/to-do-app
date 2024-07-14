@@ -1,26 +1,45 @@
-import { createSlice, createSelector, useSelector } from '@reduxjs/toolkit';
+import { createSlice, createSelector } from '@reduxjs/toolkit';
 import axios from 'axios';
 
 export const fetchTasks = (search, page, limit) => async (dispatch, getState) => {
   const state = getState();
-  console.log('fetch tasks fired')
+  const tasksState = state.tasks.tasks;
 
-  if (state.tasks.tasks.items[page]?.length > 0) return; // Do not fetch if tasks are already in the store
-  console.log('fetch tasks request made')
+  if (search) {
+    // Fetch search results if not already fetched
+    if (!tasksState.search[search]) {
+      try {
+        dispatch(setLoading());
+        const token = localStorage.getItem('token');
+        const response = await axios.get(`http://localhost:3000/tasks?search=${search}&page=${page}&limit=${limit}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
 
-  try {
-    dispatch(setLoading());
-    const token = localStorage.getItem('token');
-    const response = await axios.get(`http://localhost:3000/tasks?search=${search}&page=${page}&limit=${limit}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+        dispatch(setSearchResults({ tasks: response.data.tasks, totalTasks: response.data.totalTasks, page, search }));
+      } catch (error) {
+        console.error('Error fetching tasks', error);
+      } finally {
+        dispatch(setIdle());
+      }
+    }
+  } else {
+    // Fetch tasks if not already fetched
+    if (!tasksState.items[page] || tasksState.items[page].length === 0) {
+      try {
+        dispatch(setLoading());
+        const token = localStorage.getItem('token');
+        const response = await axios.get(`http://localhost:3000/tasks?page=${page}&limit=${limit}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
 
-    dispatch(setTasks({ tasks: response.data.tasks, page }));
-    dispatch(setTotalPages(response.data.totalPages));
-  } catch (error) {
-    console.error('Error fetching tasks', error);
-  } finally {
-    dispatch(setIdle());
+        dispatch(setTasks({ tasks: response.data.tasks, totalTasks: response.data.totalTasks, page }));
+        dispatch(setTotalPages({ totalPages: response.data.totalPages }));
+      } catch (error) {
+        console.error('Error fetching tasks', error);
+      } finally {
+        dispatch(setIdle());
+      }
+    }
   }
 };
 
@@ -51,7 +70,6 @@ export const updateTask = (id, { status, title, description }) => async (dispatc
 export const deleteTask = (taskId) => async (dispatch) => {
   try {
     const token = localStorage.getItem('token');
-    console.log('before request', taskId)
     await axios.delete(`http://localhost:3000/tasks/${taskId}`, {
       headers: { Authorization: `Bearer ${token}` },
     });
@@ -65,6 +83,7 @@ const tasksSlice = createSlice({
   name: 'tasks',
   initialState: {
     items: {},
+    search: {},
     currentPage: 1,
     totalPages: 1,
     status: 'idle',
@@ -74,13 +93,25 @@ const tasksSlice = createSlice({
     setTasks: (state, action) => {
       const { tasks, page } = action.payload;
       state.items[page] = tasks;
+
+      state.status = 'succeeded';
+    },
+    setSearchResults: (state, action) => {
+      const { tasks, totalTasks, page, search } = action.payload;
+      if (!state.search[search]) {
+        state.search[search] = {};
+      }
+      state.search[search] = tasks;
+      state.search[search].totalTasks = totalTasks
       state.status = 'succeeded';
     },
     setTotalPages: (state, action) => {
-      state.totalPages = action.payload;
+      const { totalPages } = action.payload;
+      state.totalPages = totalPages
     },
     clearAllPages: (state) => {
       state.items = {};
+      state.search = {};
     },
     setCurrentPage: (state, action) => {
       state.currentPage = action.payload;
@@ -94,30 +125,34 @@ const tasksSlice = createSlice({
   },
 });
 
-export const { setTasks, setTotalPages, clearAllPages, setCurrentPage, setLoading, setIdle } = tasksSlice.actions;
-
+export const { setTasks, setSearchResults, setTotalPages, clearAllPages, setCurrentPage, setLoading, setIdle } = tasksSlice.actions;
 
 // Selectors
-const selectTasksState = (state) => state.tasks;
+const selectTasksState = (state) => state.tasks.tasks;
 
 export const selectTasks = createSelector(
   [selectTasksState],
-  (tasksState) => tasksState.tasks.items[tasksState.tasks.currentPage] || []
+  (tasksState) => tasksState.items[tasksState.currentPage] || []
+);
+
+export const selectSearchResults = createSelector(
+  [selectTasksState],
+  (tasksState) => tasksState.search
 );
 
 export const getCurrentState = createSelector(
   [selectTasksState],
-  (tasksState) => tasksState.tasks.status
+  (tasksState) => tasksState.status
 );
 
 export const selectTotalPages = createSelector(
   [selectTasksState],
-  (tasksState) => tasksState.tasks.totalPages
+  (tasksState) => tasksState.totalPages
 );
 
 export const selectCurrentPage = createSelector(
   [selectTasksState],
-  (tasksState) => tasksState.tasks.currentPage
+  (tasksState) => tasksState.currentPage
 );
 
 export default tasksSlice.reducer;

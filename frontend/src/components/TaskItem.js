@@ -5,7 +5,7 @@ import { fetchTasks, deleteTask, updateTask } from '../features/tasks/tasksSlice
 
 const TaskItem = ({ task, search, currentPage, pageSize }) => {
     const dispatch = useDispatch();
-    const [isComplete] = useState(task.status === 'completed' ? true : false);
+    const isComplete = task.status === 'completed';
     const [modalOpen, setModalOpen] = useState(false);
     const [title, setTitle] = useState(task.title);
     const [description, setDescription] = useState(task.description);
@@ -21,7 +21,7 @@ const TaskItem = ({ task, search, currentPage, pageSize }) => {
     };
 
     const handleComplete = async () => {
-        await dispatch(updateTask(task._id, { status: 'completed' }));
+        await dispatch(updateTask({ id: task._id, status: 'completed' }));
         await dispatch(fetchTasks(search, currentPage, pageSize));
     };
 
@@ -30,7 +30,7 @@ const TaskItem = ({ task, search, currentPage, pageSize }) => {
     };
 
     const handleUpdateTask = async () => {
-        await dispatch(updateTask(task._id, { title, description }));
+        await dispatch(updateTask({ id: task._id, title, description }));
         setModalOpen(false);
         await dispatch(fetchTasks(search, currentPage, pageSize));
     };
