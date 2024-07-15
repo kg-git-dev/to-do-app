@@ -24,7 +24,6 @@ const TaskList = () => {
   const [modalOpen, setModalOpen] = useState(false);
 
   useEffect(() => {
-    console.log('use effect fired')
     if (search.length > 0) {
       dispatch(fetchTasks(search, 1, 1, ));
     } else {
