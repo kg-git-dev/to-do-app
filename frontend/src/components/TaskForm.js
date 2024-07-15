@@ -25,17 +25,19 @@ const TaskForm = ({ onAddTask }) => {
   return (
     <form onSubmit={handleSubmit}>
       <div>
-        <label>Title:</label>
+        <label htmlFor="title">Title:</label>
         <input
           type="text"
+          id="title"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
         />
       </div>
       <div>
-        <label>Description:</label>
+        <label htmlFor="description">Description:</label>
         <input
           type="text"
+          id="description"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
         />
