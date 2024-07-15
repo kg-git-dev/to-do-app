@@ -9,10 +9,14 @@ import TaskForm from './TaskForm';
 const TaskList = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const tasks = useSelector(selectTasks);
+  
   const searchResults = useSelector(selectSearchResults);
   const totalPages = useSelector(selectTotalPages);
   const currentPage = useSelector(selectCurrentPage);
+
+  const [sortBy, changeSortBy] = useState('latest');
+  const tasks = useSelector((state) => selectTasks(state, currentPage, sortBy));
+
   const status = useSelector(getCurrentState);
   const [search, setSearch] = useState('');
   const [searchPage, setSearchPage] = useState(1);
@@ -20,21 +24,26 @@ const TaskList = () => {
   const [modalOpen, setModalOpen] = useState(false);
 
   useEffect(() => {
+    console.log('use effect fired')
     if (search.length > 0) {
-      dispatch(fetchTasks(search));
+      dispatch(fetchTasks(search, 1, 1, ));
     } else {
-      dispatch(fetchTasks(search, currentPage, pageSize));
+      dispatch(fetchTasks(search, currentPage, pageSize, sortBy));
     }
-  }, [search, currentPage, dispatch]);
+  }, [search, currentPage, sortBy, dispatch]);
 
   const activateAddTask = () => {
     setModalOpen(true);
   };
 
+  const toggleSort = async () => {
+    changeSortBy(sortBy === 'latest' ? 'oldest' : 'latest')
+  }
+
   const handleAddTask = async (task) => {
     setModalOpen(false);
     await dispatch(addTask(task));
-    await dispatch(fetchTasks(search, currentPage, pageSize));
+    await dispatch(fetchTasks(search, currentPage, pageSize, sortBy));
   };
 
   const renderPageButtons = () => {
@@ -69,6 +78,7 @@ const TaskList = () => {
   };
 
   const renderTasks = () => {
+    console.log('came to render', tasks)
     return tasks.map((task, index) => (
       <Grid.Row key={index}>
         <TaskItem task={task} search={search} currentPage={currentPage} pageSize={pageSize} />
@@ -107,6 +117,7 @@ const TaskList = () => {
         {status === 'loading' && <p>Loading...</p>}
         <Grid.Row style={{ marginTop: '20px' }}>
           <h2>Task List</h2>
+          <Button onClick={toggleSort}>Sort</Button>
         </Grid.Row>
         <Grid.Row>
           <Input

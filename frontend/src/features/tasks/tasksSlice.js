@@ -1,7 +1,7 @@
 import { createSlice, createSelector } from '@reduxjs/toolkit';
 import axios from 'axios';
 
-export const fetchTasks = (search, page, limit) => async (dispatch, getState) => {
+export const fetchTasks = (search, page, limit, sortBy) => async (dispatch, getState) => {
   const state = getState();
   const tasksState = state.tasks.tasks;
 
@@ -11,7 +11,7 @@ export const fetchTasks = (search, page, limit) => async (dispatch, getState) =>
       try {
         dispatch(setLoading());
         const token = localStorage.getItem('token');
-        const response = await axios.get(`http://localhost:3000/tasks?search=${search}&page=${page}&limit=${limit}`, {
+        const response = await axios.get(`http://localhost:3000/tasks?search=${search}&page=${page}&limit=${limit}&sort=${sortBy}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -24,15 +24,15 @@ export const fetchTasks = (search, page, limit) => async (dispatch, getState) =>
     }
   } else {
     // Fetch tasks if not already fetched
-    if (!tasksState.items[page] || tasksState.items[page].length === 0) {
+    if (!tasksState.items[`${page}-${sortBy}`] || tasksState.items[`${page}-${sortBy}`].length === 0) {
       try {
         dispatch(setLoading());
         const token = localStorage.getItem('token');
-        const response = await axios.get(`http://localhost:3000/tasks?page=${page}&limit=${limit}`, {
+        const response = await axios.get(`http://localhost:3000/tasks?page=${page}&limit=${limit}&sort=${sortBy}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
-        dispatch(setTasks({ tasks: response.data.tasks, totalTasks: response.data.totalTasks, page }));
+        dispatch(setTasks({ tasks: response.data.tasks, totalTasks: response.data.totalTasks, page, sortBy }));
         dispatch(setTotalPages({ totalPages: response.data.totalPages }));
       } catch (error) {
         console.error('Error fetching tasks', error);
@@ -91,18 +91,17 @@ const tasksSlice = createSlice({
   },
   reducers: {
     setTasks: (state, action) => {
-      const { tasks, page } = action.payload;
-      state.items[page] = tasks;
-
+      const { tasks, page, sortBy } = action.payload;
+      state.items[`${page}-${sortBy}`] = tasks;
       state.status = 'succeeded';
     },
     setSearchResults: (state, action) => {
-      const { tasks, totalTasks, page, search } = action.payload;
+      const { tasks, totalTasks, page, search, sortBy } = action.payload;
       if (!state.search[search]) {
         state.search[search] = {};
       }
       state.search[search] = tasks;
-      state.search[search].totalTasks = totalTasks
+      state.search[search].totalTasks = totalTasks;
       state.status = 'succeeded';
     },
     setTotalPages: (state, action) => {
@@ -131,8 +130,8 @@ export const { setTasks, setSearchResults, setTotalPages, clearAllPages, setCurr
 const selectTasksState = (state) => state.tasks.tasks;
 
 export const selectTasks = createSelector(
-  [selectTasksState],
-  (tasksState) => tasksState.items[tasksState.currentPage] || []
+  [selectTasksState, (state, page, sortBy) => `${page}-${sortBy}`],
+  (tasksState, key) => tasksState.items[key] || []
 );
 
 export const selectSearchResults = createSelector(
