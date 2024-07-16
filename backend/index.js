@@ -20,6 +20,9 @@ app.use(cors());
 app.use('/auth', authRoutes);
 app.use('/tasks', taskRoutes);
 
+// Serve tatic files from the React app
+const reactAppPath = path.join(__dirname, 'public');
+app.use(express.static(reactAppPath));
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, async () => {
