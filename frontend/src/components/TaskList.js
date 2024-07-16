@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button, Grid, Input, Modal } from 'semantic-ui-react';
 import { useDispatch, useSelector } from 'react-redux';
@@ -9,7 +9,16 @@ import TaskForm from './TaskForm';
 const TaskList = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  
+
+  // If log in expired navigate to home page and clear local storage.
+  useLayoutEffect(() => {
+    if (localStorage.getItem('token') && localStorage.getItem('expiresAt')) {
+      if (new Date() > localStorage.getItem('expiresAt')) {
+        handleLogOut();
+      }
+    }
+  }, [])
+
   const searchResults = useSelector(selectSearchResults);
   const totalPages = useSelector(selectTotalPages);
   const currentPage = useSelector(selectCurrentPage);
@@ -25,7 +34,7 @@ const TaskList = () => {
 
   useEffect(() => {
     if (search.length > 0) {
-      dispatch(fetchTasks(search, 1, 1, ));
+      dispatch(fetchTasks(search, 1, 1,));
     } else {
       dispatch(fetchTasks(search, currentPage, pageSize, sortBy));
     }
@@ -77,7 +86,6 @@ const TaskList = () => {
   };
 
   const renderTasks = () => {
-    console.log('came to render', tasks)
     return tasks.map((task, index) => (
       <Grid.Row key={index}>
         <TaskItem task={task} search={search} currentPage={currentPage} pageSize={pageSize} />
@@ -132,7 +140,7 @@ const TaskList = () => {
         </Grid.Row>
         {search ? renderSearchTasks() : renderTasks()}
         <Grid.Row>
-          {search.length > 0? renderSearchPageButtons() : renderPageButtons()}
+          {search.length > 0 ? renderSearchPageButtons() : renderPageButtons()}
         </Grid.Row>
       </Grid>
       <Button onClick={handleLogOut}>
