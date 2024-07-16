@@ -16,7 +16,7 @@ app.use('/tasks', taskRoutes);
 const PORT = process.env.PORT || 3001;
 
 export const startServer = async () => {
-  await connectDB(); // Ensure MongoDB connection is established
+  await connectDB(); 
   return new Promise((resolve, reject) => {
     const server = app.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);
