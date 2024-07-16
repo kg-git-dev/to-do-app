@@ -9,10 +9,10 @@ const LoginForm = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if(localStorage.getItem('token') && localStorage.getItem('expiresAt')) {
-      if(new Date() < localStorage.getItem('expiresAt')){
+    if (localStorage.getItem('token') && localStorage.getItem('expiresAt')) {
+      if (new Date() < localStorage.getItem('expiresAt')) {
         navigate('/tasks-list');
-      } 
+      }
     }
   }, [])
 

@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import { Card, Modal, Form, Button } from 'semantic-ui-react';
 import { fetchTasks, deleteTask, updateTask } from '../features/tasks/tasksSlice';
 
-const TaskItem = ({ task, search, currentPage, pageSize }) => {
+const TaskItem = ({ task, search, currentPage, pageSize, setTasksUpdated }) => {
     const dispatch = useDispatch();
     const isComplete = task.status === 'completed';
     const [modalOpen, setModalOpen] = useState(false);
@@ -14,15 +14,21 @@ const TaskItem = ({ task, search, currentPage, pageSize }) => {
         try {
             await dispatch(deleteTask(task._id));
             alert('Task deleted successfully');
-        } catch (error) {
-            alert('Error deleting task');
+        } catch (err) {
+            alert('Error deleting task: ', err);
         }
-        await dispatch(fetchTasks(search, currentPage, pageSize));
+        setTasksUpdated(true)
     };
 
     const handleComplete = async () => {
-        await dispatch(updateTask(task._id, { status: 'completed' }));  
-        await dispatch(fetchTasks(search, currentPage, pageSize));
+        try {
+            await dispatch(updateTask(task._id, { status: 'completed' }));
+            alert("Task marked complete")
+
+        } catch (err) {
+            alert('Error completing task: ', err)
+        }
+        setTasksUpdated(true);
     };
 
     const handleEditTask = () => {
@@ -30,9 +36,14 @@ const TaskItem = ({ task, search, currentPage, pageSize }) => {
     };
 
     const handleUpdateTask = async () => {
-        await dispatch(updateTask(task._id, { title, description }));
+        try{
+            await dispatch(updateTask(task._id, { title, description }));
+            alert("Task updated");
+        }catch(err){
+            alert("Error updating task: ", err)
+        }
+        setTasksUpdated(true);
         setModalOpen(false);
-        await dispatch(fetchTasks(search, currentPage, pageSize));
     };
 
     return (
@@ -61,16 +72,16 @@ const TaskItem = ({ task, search, currentPage, pageSize }) => {
                     <Form>
                         <Form.Field>
                             <label>Title</label>
-                            <input 
-                                value={title} 
-                                onChange={(e) => setTitle(e.target.value)} 
+                            <input
+                                value={title}
+                                onChange={(e) => setTitle(e.target.value)}
                             />
                         </Form.Field>
                         <Form.Field>
                             <label>Description</label>
-                            <textarea 
-                                value={description} 
-                                onChange={(e) => setDescription(e.target.value)} 
+                            <textarea
+                                value={description}
+                                onChange={(e) => setDescription(e.target.value)}
                             />
                         </Form.Field>
                         <Button onClick={handleUpdateTask} positive>Update</Button>

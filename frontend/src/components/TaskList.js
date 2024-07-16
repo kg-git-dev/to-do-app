@@ -31,6 +31,7 @@ const TaskList = () => {
   const [searchPage, setSearchPage] = useState(1);
   const [pageSize] = useState(3);
   const [modalOpen, setModalOpen] = useState(false);
+  const [taskUpdated, setTasksUpdated] = useState(false);
 
   useEffect(() => {
     if (search.length > 0) {
@@ -38,7 +39,10 @@ const TaskList = () => {
     } else {
       dispatch(fetchTasks(search, currentPage, pageSize, sortBy));
     }
-  }, [search, currentPage, sortBy, dispatch]);
+
+    if (taskUpdated) setTasksUpdated(false);
+
+  }, [search, currentPage, sortBy, taskUpdated]);
 
   const activateAddTask = () => {
     setModalOpen(true);
@@ -88,7 +92,7 @@ const TaskList = () => {
   const renderTasks = () => {
     return tasks.map((task, index) => (
       <Grid.Row key={index}>
-        <TaskItem task={task} search={search} currentPage={currentPage} pageSize={pageSize} />
+        <TaskItem task={task} search={search} currentPage={currentPage} pageSize={pageSize} setTasksUpdated={setTasksUpdated} />
       </Grid.Row>
     ));
   };
@@ -120,13 +124,13 @@ const TaskList = () => {
 
   return (
     <>
-      <Grid centered>
-        {status === 'loading' && <p>Loading...</p>}
-        <Grid.Row style={{ marginTop: '20px' }}>
-          <h2>Task List</h2>
-          <Button onClick={toggleSort}>Sort</Button>
-        </Grid.Row>
-        <Grid.Row>
+    <Grid>
+      {status === 'loading' && <p>Loading...</p>}
+      <Grid columns={4} stackable>
+        <Grid.Column>
+          <Button onClick={toggleSort} disabled={search.length > 0}>Sort by {sortBy === 'latest' ? 'oldest' : 'latest'}</Button>
+        </Grid.Column>
+        <Grid.Column>
           <Input
             type="text"
             placeholder="Search tasks"
@@ -136,30 +140,39 @@ const TaskList = () => {
               setSearchPage(1); // Reset search page to 1 on new search
             }}
           />
-          <button onClick={activateAddTask} style={{ marginLeft: '30px' }}>ADD TASK</button>
-        </Grid.Row>
-        {search ? renderSearchTasks() : renderTasks()}
-        <Grid.Row>
-          {search.length > 0 ? renderSearchPageButtons() : renderPageButtons()}
-        </Grid.Row>
+        </Grid.Column>
+        <Grid.Column>
+          <Button positive onClick={activateAddTask}>ADD TASK</Button>
+        </Grid.Column>
+        <Grid.Column>
+          <Button negative onClick={handleLogOut}>
+            Log out
+          </Button>
+        </Grid.Column>
       </Grid>
-      <Button onClick={handleLogOut}>
-        Log out
-      </Button>
 
-      <Modal
-        size={"mini"}
-        open={modalOpen}
-        onClose={() => setModalOpen(false)}
-      >
-        <Modal.Header>Add Task</Modal.Header>
-        <Modal.Content>
-          <TaskForm onAddTask={handleAddTask} />
-        </Modal.Content>
-        <Modal.Actions>
-        </Modal.Actions>
-      </Modal>
-    </>
+    </Grid>
+    <Grid centered>
+      {search ? renderSearchTasks() : renderTasks()}
+      <Grid.Row>
+        {search.length > 0 ? renderSearchPageButtons() : renderPageButtons()}
+      </Grid.Row>
+    </Grid>
+
+
+    <Modal
+      size={"mini"}
+      open={modalOpen}
+      onClose={() => setModalOpen(false)}
+    >
+      <Modal.Header>Add Task</Modal.Header>
+      <Modal.Content>
+        <TaskForm onAddTask={handleAddTask} />
+      </Modal.Content>
+      <Modal.Actions>
+      </Modal.Actions>
+    </Modal>
+  </>
   );
 };
 
